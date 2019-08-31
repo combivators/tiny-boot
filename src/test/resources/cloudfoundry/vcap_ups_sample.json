@@ -1,0 +1,11 @@
+{ "user-provided" : [ { "credentials" : {
+            "cf.username" : "hoge",
+            "cf.password" : "rv2XU8KDcevKy7Wm"
+          },
+        "label" : "user-provided",
+        "name" : "ups-tiny",
+        "plan" : "free",
+        "tags" : [
+          ]
+      } ]
+}
