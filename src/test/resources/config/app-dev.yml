@@ -1,0 +1,25 @@
+# Comment
+server:
+  contextPath: /
+  port: 80
+
+logging:
+  level:
+    org.apache.catalina.core: warn # Comment
+    org.springframework: info
+vcap:
+  services:
+    ups-admin:
+      credentials:
+        admin:
+          api:
+            server:
+              auth:
+                enable: true
+paas:
+  vcap:
+    alias: vcap.services.ups-admin.credentials
+admin:
+  server-auth:
+    admin-api:
+      enable: ${${paas.vcap.alias}.admin.api.server.auth.enable}

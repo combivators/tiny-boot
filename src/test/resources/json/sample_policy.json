@@ -1,0 +1,93 @@
+{
+  "signedPolicyData": {
+    "policyData": {
+      "domain": "yby.t-mkunii.pcpf-box-admin",
+      "policies": [
+        {
+          "name": "yby.t-mkunii.pcpf-box-admin:policy.access-operator",
+          "modified": "2018-08-22T01:40:33.597Z",
+          "assertions": [
+            {
+              "role": "yby.t-mkunii.pcpf-box-admin:role.pcpf-operator",
+              "resource": "yby.t-mkunii.pcpf-box-admin:resource.operator",
+              "action": "access",
+              "effect": "ALLOW"
+            },
+            {
+              "role": "yby.t-mkunii.pcpf-box-admin:role.pcpf-admin",
+              "resource": "yby.t-mkunii.pcpf-box-admin:resource.operator",
+              "action": "access",
+              "effect": "ALLOW"
+            }
+          ]
+        },
+        {
+          "name": "yby.t-mkunii.pcpf-box-admin:policy.admin",
+          "modified": "2018-08-15T07:27:16.996Z",
+          "assertions": [
+            {
+              "role": "yby.t-mkunii.pcpf-box-admin:role.admin",
+              "resource": "yby.t-mkunii.pcpf-box-admin:*",
+              "action": "*",
+              "effect": "ALLOW"
+            }
+          ]
+        },
+        {
+          "name": "yby.t-mkunii.pcpf-box-admin:policy.access-reader",
+          "modified": "2018-08-22T01:38:53.089Z",
+          "assertions": [
+            {
+              "role": "yby.t-mkunii.pcpf-box-admin:role.pcpf-reader",
+              "resource": "yby.t-mkunii.pcpf-box-admin:resource.reader",
+              "action": "access",
+              "effect": "ALLOW"
+            },
+            {
+              "role": "yby.t-mkunii.pcpf-box-admin:role.pcpf-operator",
+              "resource": "yby.t-mkunii.pcpf-box-admin:resource.reader",
+              "action": "access",
+              "effect": "ALLOW"
+            },
+            {
+              "role": "yby.t-mkunii.pcpf-box-admin:role.pcpf-admin",
+              "resource": "yby.t-mkunii.pcpf-box-admin:resource.reader",
+              "action": "access",
+              "effect": "ALLOW"
+            }
+          ]
+        },
+        {
+          "name": "yby.t-mkunii.pcpf-box-admin:policy.tools",
+          "modified": "2018-08-15T07:32:28.103Z",
+          "assertions": [
+            {
+              "role": "yby.t-mkunii.pcpf-box-admin:role.tools",
+              "resource": "yby.t-mkunii.pcpf-box-admin:localhost.yahoo.co.jp",
+              "action": "issue",
+              "effect": "ALLOW"
+            }
+          ]
+        },
+        {
+          "name": "yby.t-mkunii.pcpf-box-admin:policy.access-admin",
+          "modified": "2018-08-22T01:41:40.784Z",
+          "assertions": [
+            {
+              "role": "yby.t-mkunii.pcpf-box-admin:role.pcpf-admin",
+              "resource": "yby.t-mkunii.pcpf-box-admin:resource.admin",
+              "action": "access",
+              "effect": "ALLOW"
+            }
+          ]
+        }
+      ]
+    },
+    "signature": "xmcBm7kcIm8bDYEyOs1nUt2PnG0kgSniCKuA_GDZV2lGHR7I0UmNWMeHcneFuzw2OnyTDYMPXrI0.Ho5SHZfU.z483RNt0W5pektxSzhT8sqOj86UAGZaBQrdC5ZBH2.AbQ0XxyunQk_iGm_cXpTtVGOwow5RT9OKyxlKPJe0G0-",
+    "keyId": "0",
+    "modified": "2019-03-14T02:20:28.941Z",
+    "expires": "2019-04-19T04:45:39.964Z"
+  },
+  "signature": "DJVxH0v293WFHUtv5uZrT9W3wjBkqz9riJIDPUW4Py_xHOrRsCL_PeqZYPnxjCclWOEDU5szOE98pey1oZCiYpx2UwxNy2KZuLtC0nEK4.m6HnYNc.I6GZEGVZIZ1Z095T3r4FyQcRPMZd7I2jc3sUoi557n21x77_G1tM.rP7c-",
+  "keyId": "0"
+}
