@@ -111,75 +111,75 @@ public class ReflectionsTest {
 
     @Test
     public void testGetSetterStream() throws Exception {
-    	Predicate<Method> filter = new Predicate<Method>() {
-			@Override
-			public boolean test(Method m) {
-				return (1 == m.getParameterCount());
-			}
-    	};
-    	Stream<Method> thisMethods = Arrays.stream(SampleConfig.class.getDeclaredMethods()).filter(filter);
-    	List<Method> setters = thisMethods.collect(Collectors.toList());
-    	System.out.println("SampleConfig methods:");
-    	setters.stream().forEach(m -> System.out.println(" " + m.getName()));
-    	assertEquals(5, setters.size());
+        Predicate<Method> filter = new Predicate<Method>() {
+            @Override
+            public boolean test(Method m) {
+                return (1 == m.getParameterCount());
+            }
+        };
+        Stream<Method> thisMethods = Arrays.stream(SampleConfig.class.getDeclaredMethods()).filter(filter);
+        List<Method> setters = thisMethods.collect(Collectors.toList());
+        System.out.println("SampleConfig methods:");
+        setters.stream().forEach(m -> System.out.println(" " + m.getName()));
+        assertEquals(5, setters.size());
 
-    	thisMethods = Arrays.stream(Nested.class.getDeclaredMethods()).filter(filter);
-    	setters = thisMethods.collect(Collectors.toList());
-    	System.out.println("Nested methods:");
-    	setters.stream().forEach(m -> System.out.println(" " + m.getName()));
-    	assertEquals(4, setters.size());
+        thisMethods = Arrays.stream(Nested.class.getDeclaredMethods()).filter(filter);
+        setters = thisMethods.collect(Collectors.toList());
+        System.out.println("Nested methods:");
+        setters.stream().forEach(m -> System.out.println(" " + m.getName()));
+        assertEquals(4, setters.size());
 
-    	setters = Reflections.getSetterStream(SampleConfig.class, filter, true)
-        		.collect(Collectors.toList());
-    	System.out.println("SampleConfig methods:");
-    	setters.stream().forEach(m -> System.out.println(" " + m.getName()));
-    	assertEquals(8, setters.size());
+        setters = Reflections.getSetterStream(SampleConfig.class, filter, true)
+                .collect(Collectors.toList());
+        System.out.println("SampleConfig methods:");
+        setters.stream().forEach(m -> System.out.println(" " + m.getName()));
+        assertEquals(8, setters.size());
 
-    	setters = Reflections.getSetterStream(SampleConfig.class)
-        		.collect(Collectors.toList());
-    	System.out.println("SampleConfig methods:");
-    	setters.stream().forEach(m -> System.out.println(" " + m.getName()));
-    	assertEquals(8, setters.size());
+        setters = Reflections.getSetterStream(SampleConfig.class)
+                .collect(Collectors.toList());
+        System.out.println("SampleConfig methods:");
+        setters.stream().forEach(m -> System.out.println(" " + m.getName()));
+        assertEquals(8, setters.size());
     }
 
     @Test
     public void testFindFieldSetter() throws Exception {
-    	Predicate<Field> filter = Reflections.IS_NOT_STATIC_FIELD
-    				.and(Reflections.IS_NOT_FINAL_FIELD)
-    				.and(f -> f.getName().equals("name"));
-    	Stream<Field> thisFields = Reflections.getFieldStream(Nested.class, filter);
-    	List<Field> fields = thisFields.collect(Collectors.toList());
-    	assertEquals(1, fields.size());
-    	System.out.println("Nested 'name' fields:");
-    	fields.stream().forEach(f -> System.out.println(" " + f.getName()));
-    	Field field = fields.get(0);
+        Predicate<Field> filter = Reflections.IS_NOT_STATIC_FIELD
+                    .and(Reflections.IS_NOT_FINAL_FIELD)
+                    .and(f -> f.getName().equals("name"));
+        Stream<Field> thisFields = Reflections.getFieldStream(Nested.class, filter);
+        List<Field> fields = thisFields.collect(Collectors.toList());
+        assertEquals(1, fields.size());
+        System.out.println("Nested 'name' fields:");
+        fields.stream().forEach(f -> System.out.println(" " + f.getName()));
+        Field field = fields.get(0);
 
-    	List<Method> setters = Reflections.getSetterStream(Nested.class, Reflections.IS_SETTER_METHOD, filter)
-    			.collect(Collectors.toList());
-    	assertEquals(2, setters.size());
-    	assertTrue(setters.get(0).getName().toLowerCase().contains("name"));
-    	assertTrue(setters.get(1).getName().toLowerCase().contains("name"));
+        List<Method> setters = Reflections.getSetterStream(Nested.class, Reflections.IS_SETTER_METHOD, filter)
+                .collect(Collectors.toList());
+        assertEquals(2, setters.size());
+        assertTrue(setters.get(0).getName().toLowerCase().contains("name"));
+        assertTrue(setters.get(1).getName().toLowerCase().contains("name"));
 
-    	System.out.println("Nested 'name' setter:");
-    	setters.stream().forEach(m -> System.out.println(" " + m.getName()));
+        System.out.println("Nested 'name' setter:");
+        setters.stream().forEach(m -> System.out.println(" " + m.getName()));
 
-    	Optional<Method> optional = Reflections.getSetter(Nested.class, "name");
-    	assertTrue(optional.isPresent());
+        Optional<Method> optional = Reflections.getSetter(Nested.class, "name");
+        assertTrue(optional.isPresent());
 
-    	optional = Reflections.getSetter(Nested.class, "unknow");
-    	assertFalse(optional.isPresent());
+        optional = Reflections.getSetter(Nested.class, "unknow");
+        assertFalse(optional.isPresent());
 
-    	Method setter = Reflections.getSetter(Nested.class, field);
-    	assertNotNull(setter);
+        Method setter = Reflections.getSetter(Nested.class, field);
+        assertNotNull(setter);
 
-    	filter = Reflections.IS_NOT_STATIC_FIELD
-				.and(Reflections.IS_NOT_FINAL_FIELD)
-				.and(f -> f.getName().equals("url"));
-    	fields = Reflections.getFieldStream(SampleConfig.class, filter).collect(Collectors.toList());
-    	field = fields.get(0);
+        filter = Reflections.IS_NOT_STATIC_FIELD
+                .and(Reflections.IS_NOT_FINAL_FIELD)
+                .and(f -> f.getName().equals("url"));
+        fields = Reflections.getFieldStream(SampleConfig.class, filter).collect(Collectors.toList());
+        field = fields.get(0);
 
-    	setter = Reflections.getSetter(Nested.class, field);
-    	assertNull(setter);
+        setter = Reflections.getSetter(Nested.class, field);
+        assertNull(setter);
 
     }
 
@@ -196,6 +196,8 @@ public class ReflectionsTest {
     }
 
     public static class DummyBean implements DummyZero, DummyOne, Serializable {
+        private static final long serialVersionUID = 1L;
+
         public void main(String[] args) {
         }
     }
@@ -238,8 +240,8 @@ public class ReflectionsTest {
         }
 
         public Nested name(String n) {
-        	name = n;
-        	return this;
+            name = n;
+            return this;
         }
     }
 
@@ -249,6 +251,7 @@ public class ReflectionsTest {
     }
 
     public static abstract class AbstractConfig implements Cost, Serializable {
+        private static final long serialVersionUID = 1L;
         private String url;
         private Integer cost;
         public String getUrl() {
@@ -265,11 +268,12 @@ public class ReflectionsTest {
         }
 
         public AbstractConfig attr(Integer num) {
-        	return this;
+            return this;
         }
     }
 
     public static class SampleConfig extends AbstractConfig {
+        private static final long serialVersionUID = 1L;
         private LocalDate date;
         private LocalTime time;
         private LocalDateTime datetime;

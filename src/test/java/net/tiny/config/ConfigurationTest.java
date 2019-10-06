@@ -586,17 +586,17 @@ public class ConfigurationTest {
     }
 
     public static class TestType<T> {
-        private String valueString;
-        private List<String> listString;
-        private CustomType valueCustom;
-        private List<CustomType> listCustom;
-        private CustomIF valueInterface;
-        private List<CustomIF> listInterface;
-        private AbstractType valueAbstract;
-        private List<AbstractType> listAbstract;
+        String valueString;
+        List<String> listString;
+        CustomType valueCustom;
+        List<CustomType> listCustom;
+        CustomIF valueInterface;
+        List<CustomIF> listInterface;
+        AbstractType valueAbstract;
+        List<AbstractType> listAbstract;
 
-        private List<AbstractType.Filter<T>> filters;
-        private Set<AbstractType> sets = Collections.synchronizedSortedSet(new TreeSet<>());
+        List<AbstractType.Filter<T>> filters;
+        Set<AbstractType> sets = Collections.synchronizedSortedSet(new TreeSet<>());
     }
 
     @Test
@@ -684,20 +684,20 @@ public class ConfigurationTest {
 
     static class ConfigMonitor implements ContextHandler.Listener {
 
-		@Override
-		public void created(Object bean, Class<?> beanClass) {
-			System.out.println(String.format("[CONFIG] An object '%s'#%d was created.", beanClass.getSimpleName(), bean.hashCode()));
-		}
-		@Override
-		public void parsed(String type, String resource, int size) {
-			System.out.println(String.format("[CONFIG] %s '%s'(%d) was parsed.", type, String.valueOf(resource), size));
-		}
-		@Override
-		public void cached(String name, Object value, boolean config) {
-			if (config)
-				System.out.println(String.format("[BOOT] Cached Configuration#%d'", value.hashCode()));
-			else
-				System.out.println(String.format("[BOOT] Cached %s = %s", name, value.toString()));
-		}
+        @Override
+        public void created(Object bean, Class<?> beanClass) {
+            System.out.println(String.format("[CONFIG] An object '%s'#%d was created.", beanClass.getSimpleName(), bean.hashCode()));
+        }
+        @Override
+        public void parsed(String type, String resource, int size) {
+            System.out.println(String.format("[CONFIG] %s '%s'(%d) was parsed.", type, String.valueOf(resource), size));
+        }
+        @Override
+        public void cached(String name, Object value, boolean config) {
+            if (config)
+                System.out.println(String.format("[BOOT] Cached Configuration#%d'", value.hashCode()));
+            else
+                System.out.println(String.format("[BOOT] Cached %s = %s", name, value.toString()));
+        }
     }
 }
