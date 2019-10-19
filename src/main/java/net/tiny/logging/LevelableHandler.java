@@ -10,7 +10,9 @@ import java.util.logging.StreamHandler;
  *
  */
 //TODO On Cloud Foundry(PaaS) Can't load log handler "net.tiny.logging.LevelableHandler" error!
-// https://github.com/SAP/cf-java-logging-support
+//https://github.com/SAP/cf-java-logging-support
+//TODO ClassNotFoundException: net.tiny.logging.LevelableHandler
+//https://stackoverflow.com/questions/16501138/classnotfoundexception-for-java-util-logging-handler-in-maven-tomcat7run
 public class LevelableHandler extends StreamHandler {
 
     private final StreamHandler stderrHandler;

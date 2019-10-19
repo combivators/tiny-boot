@@ -49,10 +49,11 @@ public class VcapServicesTest {
     @Test
     public void testEnvironmentVcapServices() throws Exception {
         assertNull(System.getenv(VcapServices.ENV_VCAP_SERVICES));
-//        updateEnv(VcapServices.ENV_VCAP_SERVICES, vcap_sample01);
-//        String json = System.getenv(VcapServices.ENV_VCAP_SERVICES);
+//    	updateEnv(VcapServices.ENV_VCAP_SERVICES, vcap_sample01);
+//    	String json = System.getenv(VcapServices.ENV_VCAP_SERVICES);
+//    	assertNotNull(json);
+
         String json = vcap_sample01;
-        assertNotNull(json);
         Map<String, Object> map = JsonParser.unmarshal(json, Map.class);
         assertNotNull(map);
         assertEquals(1, map.size());
@@ -156,16 +157,15 @@ public class VcapServicesTest {
         assertEquals("rv2XU8KDcevKy7Wm", config.getString("datasource.global.password"));
     }
 
+    /**
+     * @deprecated
+     */
     @SuppressWarnings({ "unchecked" })
     static void updateEnv(String name, String val) throws ReflectiveOperationException {
-        //On Windows failed
-        ProcessBuilder pb = new ProcessBuilder("myCommand", "myArg1", "myArg2");
-        Map<String, String> env = pb.environment();
-        //Map<String, String> env = System.getenv();
-        env.put(name, val);
-//        Field field = env.getClass().getDeclaredField("m");
-//        field.setAccessible(true);
-//        ((Map<String, String>) field.get(env)).put(name, val);
+        Map<String, String> env = System.getenv();
+        Field field = env.getClass().getDeclaredField("m");
+        field.setAccessible(true);
+        ((Map<String, String>) field.get(env)).put(name, val);
     }
 
     static String loadJson(String path) throws IOException {
