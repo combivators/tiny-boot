@@ -175,6 +175,14 @@ public final class Reflections {
         return Stream.concat(thisFields, getFieldStream(superClass, filter));
     }
 
+
+    public static Optional<Method> getGetter(Class<?> targetClass, String name) {
+        return getSetterStream(targetClass, IS_GETTER_METHOD,
+                IS_NOT_STATIC_FIELD.and(IS_NOT_FINAL_FIELD).and(IS_NOT_TRANSIENT_FIELD)
+                    .and(f -> f.getName().equals(name)))
+                .findAny();
+    }
+
     public static Method getSetter(Class<?> targetClass, Field field) {
         return getSetterStream(targetClass, IS_SETTER_METHOD,
                 IS_NOT_STATIC_FIELD.and(IS_NOT_FINAL_FIELD).and(IS_NOT_TRANSIENT_FIELD)

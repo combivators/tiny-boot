@@ -4,11 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class ConsoleFormatterTest {
+public class RecordFormatterTest {
     @Test
     public void testShortClassName() throws Exception {
         final String className = "org.junit.jupiter.engine.config.EnumConfigurationParameterConverter";
-        ConsoleFormatter formatter = new ConsoleFormatter();
+        RecordFormatter formatter = new RecordFormatter();
         assertEquals(className, formatter.shortClassName(70, className));
         assertEquals("o.j.jupiter.engine.config.EnumConfigurationParameterConverter", formatter.shortClassName(64, className));
         assertEquals("o.j.j.engine.config.EnumConfigurationParameterConverter", formatter.shortClassName(60, className));

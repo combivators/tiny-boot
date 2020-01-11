@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
 
+
 public class LoggingTest {
 
     @Test
@@ -28,5 +29,6 @@ public class LoggingTest {
         Exception ex = new Exception("Message");
         logger.log(Level.SEVERE, "[ERROR] " + ex.getMessage(), ex);
     }
+
 
 }

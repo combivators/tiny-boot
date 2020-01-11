@@ -1,9 +1,6 @@
 package net.tiny.config;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -15,9 +12,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,11 +26,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.tiny.logging.LevelableHandler;
 
 public class Configuration implements Serializable {
 
@@ -129,7 +123,7 @@ public class Configuration implements Serializable {
         this.converter = new Converter();
         if (logging) {
             // Initialization Java Logger Level
-            final Configuration loggerConfig = getConfiguration("logging.level");
+            final Configuration loggerConfig = getConfiguration("logging");
             if (null != loggerConfig) {
                 setLoggingLevel(loggerConfig);
             }
@@ -568,33 +562,13 @@ public class Configuration implements Serializable {
     }
 
     private void setLoggingLevel(Configuration loggerConfig) {
-        URL res = Thread.currentThread().getContextClassLoader().getResource("logging-template.properties");
-        if (null == res)
-            return;
-        final Set<String> targets = loggerConfig.getAllPropertyNames();
-        final StringBuffer buffer = new StringBuffer();
         try {
-            final String header = new String(readAllBytes(res.toURI()));
-            buffer.append(header);
-            for (String t : targets) {
-                String level = loggerConfig.getString(t);
-                if ("OFF".equalsIgnoreCase(level))
-                    continue;
-                if ("DEBUG".equalsIgnoreCase(level)) {
-                    level = "FINE";
-                } else
-                if ("WARN".equalsIgnoreCase(level)) {
-                    level = "WARNING";
-                } else
-                if ("ERROR".equalsIgnoreCase(level)) {
-                    level = "SEVERE";
-                }
-                buffer.append(String.format("%s.level = %s\r\n", t, level));
-            }
-            ByteArrayInputStream is = new ByteArrayInputStream(buffer.toString().getBytes());
-            LogManager.getLogManager().readConfiguration(is);
-            is.close();
-        } catch (IOException | URISyntaxException e) {
+            final Configuration levels = loggerConfig.getConfiguration("level");
+            final Properties levelProp = (levels != null) ? levels.properties : new Properties();
+            final Configuration handlers = loggerConfig.getConfiguration("handler");
+            final Properties handlerProp = (handlers != null) ? handlers.properties : new Properties();
+            LevelableHandler.setupLogger(levelProp, handlerProp);
+        } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, String.format("Java logger configuration error : %s.", e.getMessage()), e);
         }
     }
@@ -659,21 +633,6 @@ public class Configuration implements Serializable {
         return new String(baos.toByteArray());
     }
 
-
-
-    static byte[] readAllBytes(URI uri) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        InputStream in = uri.toURL().openStream();
-        byte[] buffer = new byte[4096];
-        int nread;
-        while ((nread = in.read(buffer)) > 0) {
-            baos.write(buffer, 0, nread);
-        }
-        baos.close();
-        in.close();
-        return baos.toByteArray();
-    }
-
     static class FieldBean {
         private static Map<Class<?>, Field> fields;
         private List<Object> list;
@@ -721,5 +680,4 @@ public class Configuration implements Serializable {
         }
         return classType;
     }
-
 }

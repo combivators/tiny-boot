@@ -354,17 +354,6 @@ public class ConfigurationHandlerTest {
         Set<String> targets = loggerConfig.getAllPropertyNames();
         assertEquals(3, targets.size());
         assertTrue(targets.containsAll(Arrays.asList("net.tiny", "com.sun.net", "org.apache")));
-
-
-        URL res = Thread.currentThread().getContextClassLoader().getResource("logging-template.properties");
-        assertNotNull(res);
-        StringBuffer sb = new StringBuffer();
-        final String header = new String(Configuration.readAllBytes(res.toURI()));
-        sb.append(header);
-        for (String t : targets) {
-            sb.append(String.format("%s.level = %s\r\n", t, loggerConfig.getString(t)));
-        }
-        System.out.print(sb.toString());
     }
 
 
