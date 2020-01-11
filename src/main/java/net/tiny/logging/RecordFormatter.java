@@ -4,10 +4,12 @@ import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
-public class ConsoleFormatter extends Formatter {
+public class RecordFormatter extends Formatter {
 
     private static final int MAX_REC_SIZE = 128;
-    private static final int MAX_ORG_SIZE = 40; //40
+    private static final int MAX_ORG_SIZE = 30; //40
+
+    private int limit = MAX_ORG_SIZE;
     @Override
     public synchronized String format(final LogRecord record) {
         //2019-04-04 11:49:47.242	DEBUG	net.tiny.rest.test.LoggingTest#testLoggingFormat	[FINEST] Message
@@ -26,7 +28,7 @@ public class ConsoleFormatter extends Formatter {
             className = record.getLoggerName();
         }
 
-        message.append(shortClassName(MAX_ORG_SIZE, className));
+        message.append(shortClassName(limit, className));
 
         message.append('.');
         String methodName = record.getSourceMethodName();

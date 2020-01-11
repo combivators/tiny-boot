@@ -207,8 +207,8 @@ public class StreamsTest {
     }
 
     static class TestSupperBean {
-        private static String version;
-        private String name;
+        static String version;
+        String name;
 
         public String getName() {
             return name;

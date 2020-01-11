@@ -44,7 +44,7 @@ public class JsonParserTest {
 
         //assertNotNull(JsonParser.unmarshal(jsons[6], Map.class));
         for(String json : jsons) {
-            Map map = JsonParser.unmarshal(json, Map.class);
+            Map<?,?> map = JsonParser.unmarshal(json, Map.class);
             assertNotNull(map);
             System.out.println(JsonParser.toString(map));
             System.out.println("------------------");
@@ -54,7 +54,7 @@ public class JsonParserTest {
     @Test
     public void testParserJson() throws Exception {
         Reader reader = new FileReader(new File("src/test/resources/json/example.json"));
-        Map map = JsonParser.unmarshal(reader, Map.class);
+        Map<?,?> map = JsonParser.unmarshal(reader, Map.class);
         reader.close();
         assertNotNull(map);
         System.out.println(JsonParser.toString(map));
@@ -63,7 +63,7 @@ public class JsonParserTest {
     @Test
     public void testParserDeepJson() throws Exception {
         Reader reader = new FileReader(new File("src/test/resources/json/sample_policy.json"));
-        Map map = JsonParser.unmarshal(reader, Map.class);
+        Map<?,?> map = JsonParser.unmarshal(reader, Map.class);
         assertNotNull(map);
         reader.close();
         System.out.println(JsonParser.toString(map));
@@ -74,10 +74,10 @@ public class JsonParserTest {
         String json = "{\"success\": [\"TG2301_Stoke Holy Cross\", \r\n" +
                 "             \"TF7439_Thornham Corner\", \r\n" +
                 "             \"TL8583_Thetford, North\"]}";
-        Map map = JsonParser.unmarshal(json, Map.class);
+        Map<?,?> map = JsonParser.unmarshal(json, Map.class);
         assertEquals(1, map.size());
         assertTrue(map.get("success") instanceof List);
-        List list = (List)map.get("success");
+        List<?> list = (List<?>)map.get("success");
         assertEquals(3, list.size());
         assertEquals("TG2301_Stoke Holy Cross", list.get(0));
         assertEquals("TF7439_Thornham Corner", list.get(1));
@@ -90,10 +90,10 @@ public class JsonParserTest {
         String json = "{\"success\": {\"TG2301\": \"Stoke Holy Cross\", \r\n" +
                 "             \"TF7439\": \"Thornham Corner\", \r\n" +
                 "             \"TL8583\": \"Thetford, North\"}}";
-        Map map = JsonParser.unmarshal(json, Map.class);
+        Map<?,?> map = JsonParser.unmarshal(json, Map.class);
         assertEquals(1, map.size());
         assertTrue(map.get("success") instanceof Map);
-        Map sub = (Map)map.get("success");
+        Map<?,?> sub = (Map<?,?>)map.get("success");
         assertEquals(3, sub.size());
         assertEquals("Stoke Holy Cross", sub.get("TG2301"));
         assertEquals("Thornham Corner", sub.get("TF7439"));
@@ -237,10 +237,10 @@ public class JsonParserTest {
 
         String json = JsonParser.marshal(main);
         System.out.print(json);
-        Map map = JsonParser.unmarshal(json, Map.class);
+        Map<?,?> map = JsonParser.unmarshal(json, Map.class);
         assertEquals(2, map.size());
         assertTrue(map.get("q") instanceof List);
-        List l = (List)map.get("q");
+        List<?> l = (List<?>)map.get("q");
         assertEquals(1, l.size());
     }
 
@@ -560,6 +560,7 @@ public class JsonParserTest {
 */
 
     public static abstract class AbstractConfig implements Serializable {
+        private static final long serialVersionUID = 1L;
         private String url;
         private Integer cost;
         public String getUrl() {
@@ -615,6 +616,7 @@ public class JsonParserTest {
     }
 
     public static class SampleConfig extends AbstractConfig {
+        private static final long serialVersionUID = 1L;
         private LocalDate date;
         private LocalTime time;
         private LocalDateTime datetime;
@@ -681,9 +683,10 @@ public class JsonParserTest {
     }
 
     public static class TransientedBean {
-        private String expression;
-        private transient String _exp;
-        private static String EXP = "Hello";
+        String expression;
+        transient String _exp;
+        static String EXP = "Hello";
+
         public void setExpression(String exp) {
             expression = exp;
             _exp = "(" + exp + ")";
