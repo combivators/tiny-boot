@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -53,19 +54,25 @@ public class JsonParser {
     //////////////////////////////////////////////////////
     // marshal
     public static String marshal(Object target) {
+        return marshal(target, true);
+    }
+
+    public static String marshal(Object target, boolean oneline) {
         StringWriter writer = new StringWriter();
-        marshal(target, new PrintWriter(writer));
+        marshal(target, new OnelineWriter(new PrintWriter(writer), oneline));
         return writer.toString();
     }
 
     public static void marshal(Object target, OutputStream out) {
-        PrintWriter writer = new PrintWriter(out);
-        marshal(target, writer);
+        marshal(target, out, true);
+    }
+    public static void marshal(Object target, OutputStream out, boolean oneline) {
+        marshal(target, new OnelineWriter(new PrintWriter(out), oneline));
     }
 
-    public static void marshal(Object target, PrintWriter writer) {
+    public static void marshal(Object target, OnelineWriter writer) {
         if(null == target)
-        	return;
+            return;
         boolean listed = (target instanceof Collection);
         Class<?> type = target.getClass();
         if (!listed) writer.print("{");
@@ -87,7 +94,7 @@ public class JsonParser {
         if(!listed)	writer.println("}");
     }
 
-    static void marshalJson(int indent, Object target, PrintWriter writer) {
+    static void marshalJson(int indent, Object target, OnelineWriter writer) {
         List<Field> fields = Reflections.getFieldStream(target.getClass()).collect(Collectors.toList());
         final String prefix = indentString(indent);
         boolean first = true;
@@ -104,11 +111,11 @@ public class JsonParser {
         }
     }
 
-    static void marshalJava(Object target, PrintWriter writer) {
-        writer.write(toJsonValue(0, "", target.getClass(), target, null));
+    static void marshalJava(Object target, OnelineWriter writer) {
+        writer.write(toJsonValue(0, "", target.getClass(), target, null, writer.oneline()));
     }
 
-    static void marshalJavaArray(int num, Object target, PrintWriter writer) {
+    static void marshalJavaArray(int num, Object target, OnelineWriter writer) {
         writer.write("[");
         int length = Array.getLength(target);
         for (int i = 0; i < length; i++) {
@@ -118,7 +125,7 @@ public class JsonParser {
         writer.write("]");
     }
 
-    static void marshalCollection(int num, Object target, PrintWriter writer) {
+    static void marshalCollection(int num, Object target, OnelineWriter writer) {
         writer.write("[");
         boolean first = true;
         Iterator<?> iterator = ((Collection<?>)target).iterator();
@@ -134,7 +141,7 @@ public class JsonParser {
     }
 
     @SuppressWarnings("unchecked")
-    static void marshalMap(int num, Object target, PrintWriter writer) {
+    static void marshalMap(int num, Object target, OnelineWriter writer) {
         boolean first = true;
         String prefix = indentString(num);
         Map<Object, Object> map = ((Map<Object, Object>)target);
@@ -147,18 +154,22 @@ public class JsonParser {
                 first = false;
             }
             Object value = map.get(key);
+            if (value == null) {
+                LOGGER.warning(String.format("Parse json error - Null value of key '%s'", key));
+                continue;
+            }
             if (Reflections.isCollectionType(value.getClass())) {
                 writer.print(prefix);
                 writer.print("\"");
                 writer.print(key);
-                writer.print("\" : ");
+                writer.print("\": ");
                 marshalCollection(1, value, writer);
             } else {
                 writer.print(prefix);
                 writer.print("\"");
                 writer.print(key);
-                writer.print("\" : ");
-                writer.print(toJsonValue(num+1, prefix, value.getClass(), value, null));
+                writer.print("\": ");
+                writer.print(toJsonValue(num+1, prefix, value.getClass(), value, null, writer.oneline()));
             }
         }
         writer.println();
@@ -173,17 +184,17 @@ public class JsonParser {
         return sb.toString();
     }
 
-    private static void printField(int indent, String prefix, Field field, Object value, PrintWriter writer) {
-        String string = toJsonValue(indent, prefix, value.getClass(), value, Reflections.getFieldGenericType(field));
+    private static void printField(int indent, String prefix, Field field, Object value, OnelineWriter writer) {
+        String string = toJsonValue(indent, prefix, value.getClass(), value, Reflections.getFieldGenericType(field), writer.oneline());
         writer.print(prefix);
         writer.print("\"");
         writer.print(field.getName());
-        writer.print("\" : ");
+        writer.print("\": ");
         writer.print(string);
     }
 
 
-    private static String toJsonValue(int indent, String prefix, Class<?> type, Object value, Type fieldType) {
+    private static String toJsonValue(int indent, String prefix, Class<?> type, Object value, Type fieldType, boolean oneline) {
         String string = "";
         if (type.isEnum()) {
             string = "\"" + value.toString() + "\"";
@@ -211,19 +222,20 @@ public class JsonParser {
         } else if (double.class.equals(type) || Double.class.equals(type)) {
             string = "" + (double)value;
         } else if (String.class.equals(type) || Character.class.equals(type) || char.class.equals(type)) {
-            string = "\"" + (String) value + "\"";
+            //Replace '\n' to '\\n'
+            string = "\"" + ((String)value).replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r") + "\"";
         } else if (BigDecimal.class.equals(type)) {
             string = "" + (BigDecimal) value;
         } else if (BigInteger.class.equals(type)) {
             string = "" + (BigInteger) value;
         } else if (type.isArray()) {
-            string = toJsonArray(indent, value, (Class<?>)fieldType);
+            string = toJsonArray(indent, value, (Class<?>)fieldType, oneline);
         } else if (value instanceof Collection) {
-            string = toJsonCollection(indent, (Collection<?>) value, (Class<?>)fieldType);
+            string = toJsonCollection(indent, (Collection<?>) value, (Class<?>)fieldType, oneline);
         } else if (value instanceof Map) {
             String pre = indentString(indent);
             StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
+            OnelineWriter pw = new OnelineWriter(new PrintWriter(sw), oneline);
             pw.print(pre);
             pw.println("{");
             marshalMap(indent+1, value, pw);
@@ -234,7 +246,7 @@ public class JsonParser {
         } else {
             String pre = indentString(indent);
             StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
+            OnelineWriter pw = new OnelineWriter(new PrintWriter(sw), oneline);
             pw.print(pre);
             pw.println("{");
             marshalJson(indent+1, value, pw);
@@ -247,16 +259,16 @@ public class JsonParser {
     }
 
 
-    private static String toJsonArray(int indent, Object array, Class<?> type)  {
+    private static String toJsonArray(int indent, Object array, Class<?> type, boolean oneline)  {
         StringWriter sw = new StringWriter();
-        PrintWriter writer = new PrintWriter(sw);
+        OnelineWriter writer = new OnelineWriter(new PrintWriter(sw), oneline);
         writer.print("[");
 
         int length = Array.getLength(array);
-        boolean oneline = true;
+        //boolean oneline = true;
         if(length > 0) {
             Object value = Array.get(array, 0);
-            if(null != value) {
+            if(null != value && !oneline) {
                 oneline = Reflections.isJavaType(value.getClass());
             }
         }
@@ -280,7 +292,7 @@ public class JsonParser {
                 if(!oneline) {
                     writer.print(prefix);
                 }
-                writer.print(toJsonValue(indent+1, prefix, value.getClass(), value, null));
+                writer.print(toJsonValue(indent+1, prefix, value.getClass(), value, null, oneline));
             }
         }
         if(!oneline) {
@@ -288,14 +300,17 @@ public class JsonParser {
             writer.print(prefix);
         }
         writer.print("]");
+        writer.close();
         return sw.toString();
     }
 
-    private static String toJsonCollection(int indent, Collection<?> list, Class<?> type) {
+    private static String toJsonCollection(int indent, Collection<?> list, Class<?> type, boolean oneline) {
         StringWriter sw = new StringWriter();
-        PrintWriter writer = new PrintWriter(sw);
+        OnelineWriter writer = new OnelineWriter(new PrintWriter(sw), oneline);
         writer.print("[");
-        boolean oneline = Reflections.isJavaType(type);
+        if (!oneline) {
+            oneline = Reflections.isJavaType(type);
+        }
         if(!oneline) {
             writer.println();
         }
@@ -313,7 +328,7 @@ public class JsonParser {
             if(!oneline) {
                 writer.print(prefix);
             }
-            writer.print(toJsonValue(indent+1, prefix, target.getClass(), target, null));
+            writer.print(toJsonValue(indent+1, prefix, target.getClass(), target, null, oneline));
         }
 
         if(!oneline) {
@@ -321,6 +336,7 @@ public class JsonParser {
             writer.print(prefix);
         }
         writer.print("]");
+        writer.close();
         return sw.toString();
     }
 
@@ -381,7 +397,7 @@ public class JsonParser {
             buf.append(obj.toString());
         } else {
             buf.append(QUOTE);
-            buf.append(obj.toString());
+            buf.append(obj.toString().replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r"));
             buf.append(QUOTE);
         }
     }
@@ -395,6 +411,7 @@ public class JsonParser {
     }
 
 
+
     //////////////////////////////////////////////////////
     // unmarshal
     public static <T> T unmarshal(InputStream in, Class<T> type) {
@@ -402,11 +419,11 @@ public class JsonParser {
     }
 
     public static <T> T unmarshal(Reader reader, Class<T> type) {
-    	return unmarshal(reader, type, new Mapper());
+        return unmarshal(reader, type, new Mapper());
     }
 
     public static <T> T unmarshal(final String value, final Class<T> type) {
-    	return unmarshal(value, type, new Mapper());
+        return unmarshal(value, type, new Mapper());
     }
 
     public static <T> List<T> unmarshals(InputStream in, Class<T> type) {
@@ -414,24 +431,24 @@ public class JsonParser {
     }
 
     public static <T> List<T> unmarshals(Reader reader, Class<T> type) {
-    	return unmarshals(reader, type, new Mapper());
+        return unmarshals(reader, type, new Mapper());
     }
 
     @SuppressWarnings("unchecked")
     private static <T> T unmarshal(Reader reader, Class<T> type, Mapper mapper) {
         try {
-        	Object ret = new JsonParser().parse(reader);
-        	if(null == ret) {
-        		return null;
-        	}
-        	if (type.isInstance(ret)) {
-        		return type.cast(ret);
-        	} else if (ret instanceof Map) {
-        		return mapper.convert((Map<String, ?>)ret, type);
-        	} else {
-        		throw new ClassCastException(String.format("Can not cast '%s' to '%s'",
-        				ret.getClass().getName(), type.getSimpleName()));
-        	}
+            Object ret = new JsonParser().parse(reader);
+            if(null == ret) {
+                return null;
+            }
+            if (type.isInstance(ret)) {
+                return type.cast(ret);
+            } else if (ret instanceof Map) {
+                return mapper.convert((Map<String, ?>)ret, type);
+            } else {
+                throw new ClassCastException(String.format("Can not cast '%s' to '%s'",
+                        ret.getClass().getName(), type.getSimpleName()));
+            }
 
         } catch (InstantiationException | IllegalAccessException | IOException e) {
             LOGGER.log(Level.WARNING, String.format("Parse json '%s' error - %s.",
@@ -443,21 +460,21 @@ public class JsonParser {
     @SuppressWarnings("unchecked")
     private static <T> List<T> unmarshals(Reader reader, Class<T> type, Mapper mapper) {
         try {
-        	Object ret = new JsonParser().parse(reader);
-        	if(null == ret) {
-        		return null;
-        	}
-        	if (ret instanceof List) {
-        		List<?> list = (List<?>)ret;
+            Object ret = new JsonParser().parse(reader);
+            if(null == ret) {
+                return null;
+            }
+            if (ret instanceof List) {
+                List<?> list = (List<?>)ret;
                 List<T> objs = new ArrayList<>();
                 for(int i=0; i<list.size(); i++) {
-                	objs.add(mapper.convert((Map<String, ?>)list.get(i), type));
+                    objs.add(mapper.convert((Map<String, ?>)list.get(i), type));
                 }
-        		return objs;
-        	} else {
-        		throw new ClassCastException(String.format("Can not cast '%s' to '%s'",
-        				ret.getClass().getName(), type.getSimpleName()));
-        	}
+                return objs;
+            } else {
+                throw new ClassCastException(String.format("Can not cast '%s' to '%s'",
+                        ret.getClass().getName(), type.getSimpleName()));
+            }
 
         } catch (InstantiationException | IllegalAccessException | IOException e) {
             LOGGER.log(Level.WARNING, String.format("Parse json '%s' error - %s.",
@@ -619,6 +636,7 @@ public class JsonParser {
     protected Object parseMap(StreamTokenizer tokens) throws IOException {
         assert (tokens.ttype == LBRACE);
         Map<String, Object> map = new LinkedHashMap<>(); // Keep insertion order
+        //TODO
         loop: for (;;) {
             int token = tokens.nextToken();
             switch (token) {
@@ -653,4 +671,46 @@ public class JsonParser {
         return map;
     }
 
+    static class OnelineWriter extends PrintWriter {
+        boolean oneline = false;
+        boolean lf = false;
+        public OnelineWriter(Writer out, boolean enable) {
+            super(out);
+            oneline = enable;
+        }
+
+        public boolean oneline() {
+            return oneline;
+        }
+
+        @Override
+        public void println() {
+            if (!oneline) {
+                if (!lf) {
+                    super.println();
+                    lf = true;
+                }
+            }
+        }
+
+        @Override
+        public void print(String s) {
+            if (oneline) {
+                super.print(s.trim());
+            } else {
+                super.print(s);
+            }
+            lf = false;
+        }
+
+        @Override
+        public void println(String s) {
+            if (oneline) {
+                super.print(s.trim());
+            } else {
+                super.println(s);
+                lf = true;
+            }
+        }
+    }
 }

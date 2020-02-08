@@ -52,6 +52,30 @@ public class JsonParserTest {
     }
 
     @Test
+    public void testWithLFValue() throws Exception {
+        String value = "bar\nhoge";
+        assertEquals("bar\\nhoge", value.replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r"));
+        String json = "{\"foo\":\"bar\\nhoge\"}";
+        Map<?,?> map = JsonParser.unmarshal(json, Map.class);
+        assertNotNull(map);
+        assertEquals("bar\nhoge", map.get("foo"));
+        System.out.println(JsonParser.marshal(map));
+        //System.out.println(JsonParser.toString(map));
+        assertEquals(json, JsonParser.marshal(map));
+        System.out.println(JsonParser.toString(map));
+
+
+        json = "{\"foo\":[\"1\\n2\",\"a\\nb\"]}";
+        map = JsonParser.unmarshal(json, Map.class);
+        List<?> list = (List)map.get("foo");
+        assertEquals(2, list.size());
+        assertEquals("1\n2", list.get(0));
+        assertEquals("a\nb", list.get(1));
+        System.out.println(JsonParser.marshal(map));
+        assertEquals(json, JsonParser.marshal(map));
+    }
+
+    @Test
     public void testParserJson() throws Exception {
         Reader reader = new FileReader(new File("src/test/resources/json/example.json"));
         Map<?,?> map = JsonParser.unmarshal(reader, Map.class);
@@ -171,10 +195,10 @@ public class JsonParserTest {
     @Test
     public void testMarshalJavaJson() throws Exception {
 
-        assertEquals("{\"ABCDE\"}" + LS, JsonParser.marshal("ABCDE"));
-        assertEquals("{1234.5678}" + LS, JsonParser.marshal(1234.5678d));
-        assertEquals("{\"false\"}" + LS, JsonParser.marshal(Boolean.FALSE));
-        assertEquals("{\"TWO\"}" + LS, JsonParser.marshal(TestType.TWO));
+        assertEquals("{\"ABCDE\"}", JsonParser.marshal("ABCDE"));
+        assertEquals("{1234.5678}", JsonParser.marshal(1234.5678d));
+        assertEquals("{\"false\"}", JsonParser.marshal(Boolean.FALSE));
+        assertEquals("{\"TWO\"}", JsonParser.marshal(TestType.TWO));
         System.out.print(JsonParser.marshal(LocalDate.now()));
         System.out.print(JsonParser.marshal(new Timestamp(System.currentTimeMillis())));
 
@@ -209,8 +233,9 @@ public class JsonParserTest {
         one.put("name", "ABCDE");
         one.put("value", "1234");
         one.put("date", "2015/01/25");
-        System.out.print(JsonParser.marshal(one));
-        System.out.println();
+        String json = JsonParser.marshal(one, false);
+        assertTrue(json.contains("\n"));
+        System.out.println(json);
 
         Map<String, String> two = new HashMap<>();
         two.put("name", "XYZ");
@@ -220,8 +245,36 @@ public class JsonParserTest {
         Map<String, Map<String, String>> main = new HashMap<>();
         main.put("one", one);
         main.put("two", two);
-        System.out.print(JsonParser.marshal(main));
+        json = JsonParser.marshal(main, false);
+        assertTrue(json.contains("\n"));
+        System.out.print(json);
     }
+
+    @Test
+    public void testMarshalOnelineMapJson() throws Exception {
+        Map<String, String> one = new HashMap<>();
+        one.put("name", "ABCDE");
+        one.put("value", "1234");
+        one.put("date", "2015/01/25");
+        String json = JsonParser.marshal(one, true);
+        assertFalse(json.contains("\r"));
+        assertFalse(json.contains("\n"));
+        System.out.println(json);
+
+        Map<String, String> two = new HashMap<>();
+        two.put("name", "XYZ");
+        two.put("value", "9876");
+        two.put("date", "2000/12/25");
+
+        Map<String, Map<String, String>> main = new HashMap<>();
+        main.put("one", one);
+        main.put("two", two);
+        json = JsonParser.marshal(one, true);
+        assertFalse(json.contains("\r"));
+        assertFalse(json.contains("\n"));
+        System.out.print(json);
+    }
+
 
     @Test
     public void testMarshalMapListJson() throws Exception {

@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class Converter implements Serializable {
@@ -101,6 +102,8 @@ public class Converter implements Serializable {
             }
         }
     };
+
+    static final StringValueConverter<Level> LOGGER_LEVEL = Level::parse;
 
     private static final String SEPARATOR = "_";
 
@@ -236,6 +239,7 @@ public class Converter implements Serializable {
         converters.put(LocalTime.class, LOCAL_TIME);
         converters.put(java.sql.Timestamp.class, TIMESTAMP);
 
+        converters.put(Level.class, LOGGER_LEVEL);
         converters.put(List.class, LIST);
         converters.put(Set.class, SET);
 
