@@ -282,7 +282,7 @@ public class Main {
                 Object[] boots = bootCache.get(key).toArray();
                 for (Object boot : boots) {
                     if (isRunnable(boot)) {
-                        LOGGER.log(loggerLevel, String.format("[BOOT] %s preparing...", boot.getClass().getSimpleName()));
+                        LOGGER.log(loggerLevel, String.format("[BOOT] %s preparing...", boot.toString()));
                         calls.add(new Callable<Void>() {
                             public Void call() throws IOException {
                                 ((Runnable)boot).run();
@@ -334,7 +334,7 @@ public class Main {
         bootCache = Collections.unmodifiableMap(bootCache);
         Set<String> unimps = this.configuration.remains();
         if (!unimps.isEmpty()) {
-            LOGGER.warning(String.format("[BOOT] Found %d parameter(s) '%s' that have not referenced.", unimps.size(), unimps.toString()));
+            LOGGER.info(String.format("[BOOT] Found %d instance(s) '%s' that have not referenced.", unimps.size(), unimps.toString()));
         }
         // Run service consumer callback to register all singleton services in container.
         // See 'callback.class = x.y.ServiceContext'

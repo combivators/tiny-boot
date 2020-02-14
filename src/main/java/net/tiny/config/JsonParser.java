@@ -434,6 +434,10 @@ public class JsonParser {
         return unmarshals(reader, type, new Mapper());
     }
 
+    public static <T> List<T> unmarshals(String value, Class<T> type) {
+        return unmarshals(new StringReader(value), type, new Mapper());
+    }
+
     @SuppressWarnings("unchecked")
     private static <T> T unmarshal(Reader reader, Class<T> type, Mapper mapper) {
         try {

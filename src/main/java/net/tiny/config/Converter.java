@@ -1,9 +1,12 @@
 package net.tiny.config;
 
+import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -11,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -53,7 +57,7 @@ public class Converter implements Serializable {
 
     private static final String LOCAL_DATE_FORMATTER = "yyyy/MM/dd";
 
-    // CHECKSTYLE:OFF
+
     static final StringValueConverter<Date> DATE = value -> {
         try {
             return  new SimpleDateFormat(LOCAL_DATE_FORMATTER).parse(value);
@@ -62,8 +66,6 @@ public class Converter implements Serializable {
         }
     };
 
-
-    // CHECKSTYLE:OFF
     static final StringValueConverter<LocalDate> LOCAL_DATE = value -> {
         try {
             return LocalDate.parse(value, DateTimeFormatter.ofPattern(LOCAL_DATE_FORMATTER));
@@ -74,7 +76,7 @@ public class Converter implements Serializable {
 
     private static final String LOCAL_DATETIME_FORMATTER = "yyyy/MM/dd HH:mm:ss";
 
-    // CHECKSTYLE:OFF
+
     static final StringValueConverter<LocalDateTime> LOCAL_DATETIME = value -> {
         try {
             return LocalDateTime.parse(value, DateTimeFormatter.ofPattern(LOCAL_DATETIME_FORMATTER));
@@ -84,7 +86,7 @@ public class Converter implements Serializable {
     };
 
     static final StringValueConverter<LocalTime> LOCAL_TIME = LocalTime::parse;
-    // CHECKSTYLE:ON
+
 
     static final SimpleDateFormat GMT_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     static {
@@ -104,6 +106,12 @@ public class Converter implements Serializable {
     };
 
     static final StringValueConverter<Level> LOGGER_LEVEL = Level::parse;
+    static final StringValueConverter<File> FILE = value -> {
+        return  new File(value);
+    };
+    static final StringValueConverter<Path> PATH = value -> {
+        return  Paths.get(value);
+    };
 
     private static final String SEPARATOR = "_";
 
@@ -131,15 +139,51 @@ public class Converter implements Serializable {
         return v -> Enum.valueOf(type, v);
     }
 
+    static final char[] LEFT_LIST_PREFIX  = new char[] {'{','(','[','<'};
+    static final char[] RIGHT_LIST_SUFFIX = new char[] {'}',')',']','>'};
+    static final int prefix(char c) {
+        for (int i=0; i<LEFT_LIST_PREFIX.length; i++) {
+            if (c == LEFT_LIST_PREFIX[i])
+                return i;
+        }
+        return -1;
+    }
+
+    static final List<String> merageValues(String[] values, int index) {
+        if(index == -1)
+            return Arrays.asList(values);
+        List<String> list = new ArrayList<>();
+        char suffix = RIGHT_LIST_SUFFIX[index];
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i<values.length; i++) {
+            String v = values[i];
+            if (v.charAt(v.length()-1) == suffix) { //matching last char
+                sb.append(v);
+                list.add(sb.toString());
+                sb.setLength(0);
+            } else {
+                sb.append(v);
+            }
+        }
+        return list;
+
+    }
+
     static final StringValueConverter<List<String>> LIST = value -> {
+        /*
+        if (value.charAt(0) == '[' && value.charAt(value.length()-1) == ']') {
+            value = value.substring(1, value.length()-1);
+        }
+        */
         String[] values = value.split(LIST_REGEX);
-        int last = values.length -1;
+        int last = values.length - 1;
         for(int i=0; i<values.length; i++) {
             String v = values[i].trim();
             if(v.isEmpty()) continue;
             if(i==0 && v.charAt(0) == '[') {
                 v = v.substring(1);
-            } else if(i==last && v.charAt(v.length()-1) == ']') {
+            }
+            if(i==last && v.charAt(v.length()-1) == ']') {
                 v = v.substring(0, v.length()-1);
             }
             if(v.charAt(0) == '"' && v.charAt(v.length()-1) == '"') {
@@ -147,7 +191,13 @@ public class Converter implements Serializable {
             }
             values[i] = v;
         }
-        return Arrays.asList(values);
+        int ln = -1;
+        if (values.length > 2) {
+            ln = prefix(values[0].charAt(0));
+        }
+
+        return merageValues(values, ln);
+        //return Arrays.asList(values);
     };
 
     static final StringValueConverter<Set<String>> SET = value -> {
@@ -240,6 +290,8 @@ public class Converter implements Serializable {
         converters.put(java.sql.Timestamp.class, TIMESTAMP);
 
         converters.put(Level.class, LOGGER_LEVEL);
+        converters.put(File.class, FILE);
+        converters.put(Path.class, PATH);
         converters.put(List.class, LIST);
         converters.put(Set.class, SET);
 

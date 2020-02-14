@@ -8,9 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -193,7 +195,7 @@ public class ConfigurationTest {
         Configuration sub = config.getConfiguration("APP.sample.nested");
         assertNotNull(sub);
         assertEquals("child", sub.getString("name"));
-        assertEquals(new Double(1.4d), sub.getDouble("threshold"));
+        assertEquals(Double.valueOf("1.4"), sub.getDouble("threshold"));
         assertEquals(8, config.size());
         // Test cache
         Configuration other = config.getConfiguration("APP.sample.nested");
@@ -405,6 +407,27 @@ public class ConfigurationTest {
         List<?> list = config.getAs("main", List.class);
         assertNotNull(list);
         assertEquals(1, list.size());
+    }
+
+    @Test
+    public void testFilePath() throws Exception {
+        System.out.println(FilePath.class.getName());
+        String prop =
+                  "app:" + LS
+                + "  bean:" + LS
+                + "    class: net.tiny.config.ConfigurationTest$FilePath" + LS
+                + "    file: src/test/resources/config/app-dev.yml" + LS
+                + "    path: src/test/resources/config" + LS
+                + LS;
+        ByteArrayInputStream bais = new ByteArrayInputStream(prop.getBytes());
+        ConfigurationHandler handler = new ConfigurationHandler();
+        handler.parse(bais, ContextHandler.Type.YAML);
+        Configuration config = handler.getConfiguration();
+        assertNotNull(config);
+        FilePath bean = config.getAs("app.bean", FilePath.class);
+        assertNotNull(bean);
+        assertNotNull(bean.path);
+        assertNotNull(bean.file);
     }
 
     public static abstract class AbstractConfig {
@@ -699,5 +722,11 @@ public class ConfigurationTest {
             else
                 System.out.println(String.format("[BOOT] Cached %s = %s", name, value.toString()));
         }
+    }
+
+
+    public static class FilePath {
+        File file;
+        Path path;
     }
 }

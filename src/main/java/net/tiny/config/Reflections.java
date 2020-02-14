@@ -351,6 +351,39 @@ public final class Reflections {
         return isCollectionType(field.getType()) && !isJavaType(getFieldGenericType(field)) ;
     }
 
+    public static Object getFieldValue(Object bean, String name)   {
+        try {
+            Field field = getDeclaredField(bean.getClass(), name);
+            field.setAccessible(true);
+            return field.get(bean);
+        } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException ex) {
+            String msg = String.format("Get field value of %s.%s failed. %s",
+                    bean.getClass().getSimpleName(), name, ex.getMessage());
+            throw new RuntimeException(msg, ex);
+        }
+    }
+
+    public static void setFieldValue(Object bean, String name, Object value)   {
+        if(null == value)
+            return;
+        try {
+            Field field = getDeclaredField(bean.getClass(), name);
+            //First find setter method to set field value.
+            Method setter = getSetter(bean.getClass(), field);
+            if (setter != null) {
+                setter.invoke(bean, value);
+            } else {
+                field.setAccessible(true);
+                field.set(bean, value);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            String msg = String.format("Set field value of %s.%s failed. %s",
+                    bean.getClass().getSimpleName(), name, ex.getMessage());
+            throw new RuntimeException(msg, ex);
+        }
+    }
+
+
     private static Annotation[] getAnnotationArray(Annotation annotation, Method method) {
         if (!isRepeatableAnnotation(method.getReturnType(), annotation.annotationType())) {
             return EMPTY_ANNOTATION_ARRAY;

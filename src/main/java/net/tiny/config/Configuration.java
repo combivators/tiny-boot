@@ -415,12 +415,20 @@ public class Configuration implements Serializable {
             }
         }
         T bean = null;
+
         Configuration config = getConfiguration(key, beanClass);
         if(null != config) {
             if(config.contains(CLASS_KEY)) {
                  bean = (T)getAsBean(config);
             } else {
-                bean = getAsBean(beanClass, config);
+                if (Properties.class.equals(beanClass)) {
+                    //Add 2020/02 For get direct properties
+                    Properties p = new Properties();
+                    p.putAll(config.properties);
+                    bean = beanClass.cast(p);
+                } else {
+                    bean = getAsBean(beanClass, config);
+                }
             }
             // Cache bean by the value key
             if(null != bean) {
@@ -524,7 +532,7 @@ public class Configuration implements Serializable {
         if (setter != null) {
             try {
                 setter.invoke(bean, value);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
                 LOGGER.log(Level.SEVERE,
                         String.format("%s#%s('%s') failed - %s",
                                 bean.getClass().getSimpleName(),

@@ -67,7 +67,7 @@ public class JsonParserTest {
 
         json = "{\"foo\":[\"1\\n2\",\"a\\nb\"]}";
         map = JsonParser.unmarshal(json, Map.class);
-        List<?> list = (List)map.get("foo");
+        List<?> list = (List<?>)map.get("foo");
         assertEquals(2, list.size());
         assertEquals("1\n2", list.get(0));
         assertEquals("a\nb", list.get(1));
@@ -454,7 +454,7 @@ public class JsonParserTest {
         Map<String, Object> map = JsonParser.unmarshal(json, Map.class);
         assertNotNull(map);
         assertEquals(8, map.size());
-        assertEquals(new Double(1234), map.get("value"));
+        assertEquals(Double.valueOf("1234"), map.get("value"));
         assertEquals("2016/09/16", map.get("date"));
         Object value = map.get("nested");
         assertNotNull(value);
@@ -752,4 +752,5 @@ public class JsonParserTest {
         TWO,
         THREE
     }
+
 }
