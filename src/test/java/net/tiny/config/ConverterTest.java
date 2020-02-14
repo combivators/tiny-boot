@@ -100,4 +100,56 @@ public class ConverterTest {
         TWO,
         THREE
     }
+
+    @Test
+    public void testConvertertList() {
+        String value = "[{\"endpoint\":\"http://localhost:8080/api/v1/tc1/do\",\"channels\":[\"ch1\",\"ch2\"]},{\"endpoint\":\"http://localhost:8080/api/v1/tc2/do\",\"channels\":[\"ch2\"]},{\"endpoint\":\"LocalConsumer\",\"channels\":[\"ch3\"]}]";
+        List<String> values = Converter.LIST.convert(value);
+        for (String s : values) {
+            System.out.println(s);
+        }
+        assertEquals(3, values.size());
+
+        Converter converter = new Converter();
+        List<?> list = converter.convert(value, List.class);
+        assertEquals(3, list.size());
+        //List<Map> maps = converter.convertList(value, Map.class);
+        //assertEquals(3, maps.size());
+    }
+
+    @Test
+    public void testSingleList() {
+        String value = "mail";
+        List<String> values = Converter.LIST.convert(value);
+        assertEquals(1, values.size());
+        assertEquals("mail", values.get(0));
+
+        value = "[mail]";
+        values = Converter.LIST.convert(value);
+        assertEquals(1, values.size());
+        assertEquals("mail", values.get(0));
+
+        value = "[\"mail\"]";
+        values = Converter.LIST.convert(value);
+        assertEquals(1, values.size());
+        assertEquals("mail", values.get(0));
+
+        value = "one,two";
+        values = Converter.LIST.convert(value);
+        assertEquals(2, values.size());
+        assertEquals("one", values.get(0));
+        assertEquals("two", values.get(1));
+
+        value = "[one,two]";
+        values = Converter.LIST.convert(value);
+        assertEquals(2, values.size());
+        assertEquals("one", values.get(0));
+        assertEquals("two", values.get(1));
+
+        value = "[\"one\",\"two \"]";
+        values = Converter.LIST.convert(value);
+        assertEquals(2, values.size());
+        assertEquals("one", values.get(0));
+        assertEquals("two ", values.get(1));
+    }
 }

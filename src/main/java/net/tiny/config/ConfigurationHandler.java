@@ -459,7 +459,7 @@ public final class ConfigurationHandler implements ContextHandler {
             pos = line.indexOf(COLON); //:
             if(pos == -1) {
                 //
-                LOGGER.warning(String.format("Illegal yaml format whitout colon, '%s'", line));
+                LOGGER.warning(String.format("Illegal yaml format whitout colon. %d: '%s'", lineReader.getLineNumber(), line));
                 continue;
             }
 
