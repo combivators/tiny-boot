@@ -128,13 +128,15 @@ public final class ConfigurationHandler implements ContextHandler {
 
     @Override
     public void parse(InputStream in, Type type, boolean logging) {
-        Properties properties = load(in, type);
+        //Properties properties = load(in, type);
+        Properties properties = PropertiesLoader.load(in, type, null);
         this.configuration = new Configuration(properties, listener, logging);
         if (listener != null) {
             listener.parsed(type.name(), resource, properties.size());
         }
+        //properties.list(System.out); //TODO
     }
-
+/*
     protected Properties load(InputStream in, Type type) {
         try {
             Properties properties = new Properties();
@@ -144,12 +146,14 @@ public final class ConfigurationHandler implements ContextHandler {
                 break;
             case JSON:
                 parseJson(new BufferedReader(new InputStreamReader(in, "UTF-8")), properties);
+                //properties = JsonLoader.load(new BufferedReader(new InputStreamReader(in, "UTF-8")), null);
                 break;
             case YAML:
-                parseYaml(new BufferedReader(new InputStreamReader(in, "UTF-8")), properties);
+                properties = YamlLoader.load(new BufferedReader(new InputStreamReader(in, "UTF-8")), null);
+                //parseYaml(new BufferedReader(new InputStreamReader(in, "UTF-8")), properties);
                 break;
             case PROPERTIES:
-                properties.load(new InputStreamReader(in, "UTF-8"));
+                properties.load(new BufferedReader(new InputStreamReader(in, "UTF-8")));
                 break;
             }
             return properties;
@@ -157,7 +161,8 @@ public final class ConfigurationHandler implements ContextHandler {
             throw new RuntimeException(ex.getMessage(), ex);
         }
     }
-
+*/
+    /*
     private void include(String href, Deque<String> parents, Properties properties) {
         String res;
         URL url;
@@ -529,7 +534,7 @@ public final class ConfigurationHandler implements ContextHandler {
         return tokenizer;
     }
 
-
+/*
     static void print(String config, PrintStream out) throws IOException {
         int token;
         StreamTokenizer tokenizer = createStreamTokenizer(new StringReader(config));
@@ -555,7 +560,7 @@ public final class ConfigurationHandler implements ContextHandler {
             }
         }
     }
-
+*/
     public static <T> Configuration config(Class<T> beanType) {
         Config annotation = beanType.getAnnotation(Config.class);
         if (annotation == null) {

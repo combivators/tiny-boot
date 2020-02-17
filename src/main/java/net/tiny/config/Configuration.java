@@ -414,8 +414,8 @@ public class Configuration implements Serializable {
                     return beanClass.cast(getReference(t.toString(), beanClass));
             }
         }
-        T bean = null;
 
+        T bean = null;
         Configuration config = getConfiguration(key, beanClass);
         if(null != config) {
             if(config.contains(CLASS_KEY)) {
@@ -427,6 +427,7 @@ public class Configuration implements Serializable {
                     p.putAll(config.properties);
                     bean = beanClass.cast(p);
                 } else {
+                    //System.out.println(bean + "  " + beanClass.getName() + " " + key);
                     bean = getAsBean(beanClass, config);
                 }
             }

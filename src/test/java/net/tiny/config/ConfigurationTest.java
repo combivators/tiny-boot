@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.nio.file.Path;
@@ -313,6 +314,32 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testHyphenListReference() throws Exception {
+        String prop =
+                  "app:" + LS
+                + "  m:" + LS
+                + "    a: 1" + LS
+                + "    b: 2" + LS
+                + "    c: 3" + LS
+                + "  d:" + LS
+                + "    - ${app.m.a}" + LS
+                + "    - ${app.m.b}" + LS
+                + "    - ${app.m.c}" + LS
+                + "  e:" + LS
+                + "    f: 4" + LS
+                + LS;
+        ByteArrayInputStream bais = new ByteArrayInputStream(prop.getBytes());
+        ConfigurationHandler handler = new ConfigurationHandler();
+        handler.parse(bais, ContextHandler.Type.YAML);
+        Configuration config = handler.getConfiguration();
+        assertNotNull(config);
+        List<?> list = config.getAs("app.d", List.class);
+        assertNotNull(list);
+        assertEquals(3, list.size());
+    }
+
+
+    @Test
     public void testGetAsBean() throws Exception {
         String prop =
                 "#" + LS
@@ -387,6 +414,36 @@ public class ConfigurationTest {
         assertTrue(Two.class.equals(list.get(1).getClass()));
         System.out.println(list.get(0).getClass().getName());
         System.out.println(list.get(1).getClass().getName());
+    }
+
+    @Test
+    public void testYamlReferenceOneElemntList() throws Exception {
+        String yaml =
+                  "main:" + LS
+                + "  - ${one}" + LS
+                + "one:" + LS
+                + "  class: " + One.class.getName() + LS
+                + "  name: One1" + LS
+                + "two:" + LS
+                + "  class: " + Two.class.getName() + LS
+                + "  name: Two2" + LS + LS;
+
+
+        Properties properties = YamlLoader.load(new StringReader(yaml), new PropertiesSupport.Monitor());
+
+        Configuration config = new Configuration(properties, new ConfigMonitor());
+        Configuration conf = config.getConfiguration("one");
+        Object one = config.getAsBean(conf);
+        System.out.println(one.getClass().getName());
+        assertTrue(One.class.equals(one.getClass()));
+        /*
+         * One one = config.getAs("one", One.class); assertNotNull(one); Two two =
+         * config.getAs("two", Two.class); assertNotNull(two);
+         */
+        List<?> list = config.getAs("main", List.class);
+        assertNotNull(list);
+        assertEquals(1, list.size());
+        assertTrue(One.class.equals(list.get(0).getClass()));
     }
 
     @Test
