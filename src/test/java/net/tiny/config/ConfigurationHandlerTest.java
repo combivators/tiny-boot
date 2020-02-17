@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -20,89 +21,6 @@ public class ConfigurationHandlerTest {
 
     static final String LS = System.getProperty("line.separator");
 
-    @Test
-    public void testPrintHocon() throws Exception {
-        String config =
-        "# HOCON Comment " + LS
-        + "setting {" + LS
-        + "  local = en-US" + LS
-        + "}" + LS
-        + LS
-        + "APP {" + LS
-        + "  sample {" + LS
-        + "    local = ${setting.local}" + LS
-        + "    url = \"http://www.abc.com/\"" + LS
-        + "    cost = 1080" + LS
-        + "    date = 2016/09/16" + LS
-        + "    time = 09:15" + LS
-        + "    datetime = 2016/09/16 09:15" + LS
-        + "    nested {" + LS
-        + "       name = child" + LS
-        + "       threshold = 1.4" + LS
-        + "    }" + LS
-        + "  }" + LS
-        + "}" + LS
-        + "// HOCON Comment " + LS
-        + LS;
-        ConfigurationHandler.print(config, System.out);
-    }
-
-
-    @Test
-    public void testPrintJson() throws Exception {
-        String config =
-        "# JSON Comment " + LS
-        + "{" + LS
-        + " APP {" + LS
-        + "  sample {" + LS
-        + "    local = ${setting.local}" + LS
-        + "    url = \"http://www.abc.com/\"" + LS
-        + "    cost = 1080" + LS
-        + "    date = 2016/09/16" + LS
-        + "    time = 09:15" + LS
-        + "    datetime = 2016/09/16 09:15" + LS
-        + "    nested {" + LS
-        + "       name = child" + LS
-        + "       threshold = 1.4" + LS
-        + "    }" + LS
-        + "  }" + LS
-        + " }" + LS
-        + "}" + LS
-        + "// JSON Comment " + LS
-        + LS;
-        ConfigurationHandler.print(config, System.out);
-    }
-
-    @Test
-    public void testParseHocon() throws Exception {
-        String conf =
-        "# HOCON Comment " + LS
-        + "setting {" + LS
-        + "  local = en-US" + LS
-        + "}" + LS
-        + LS
-        + "app {" + LS
-        + "  sample {" + LS
-        + "    local = ${setting.local}" + LS
-        + "    url = \"http://www.abc.com/\"" + LS
-        + "    cost = 1080" + LS
-        + "    date = 2016/09/16" + LS
-        + "    time = 09:15" + LS
-        + "    datetime = 2016/09/16 09:15" + LS
-        + "    nested {" + LS
-        + "       name = child" + LS
-        + "       threshold = 1.4" + LS
-        + "    }" + LS
-        + "  }" + LS
-        + "}" + LS
-        + "// HOCON Comment " + LS
-        + LS;
-        ByteArrayInputStream bais = new ByteArrayInputStream(conf.getBytes());
-        ConfigurationHandler handler = new ConfigurationHandler();
-        Properties prop = handler.load(bais, ContextHandler.Type.HOCON);
-        prop.list(System.out);
-
-    }
 
     @Test
     public void testParseJson() throws Exception {
@@ -194,14 +112,14 @@ public class ConfigurationHandlerTest {
         + "    api:" + LS
         + "      enable: ${${paas.vcap.alias}.admin.api.server.auth.enable}" + LS
         + LS;
-        ByteArrayInputStream bais = new ByteArrayInputStream(conf.getBytes());
-        ConfigurationHandler handler = new ConfigurationHandler();
-        Properties prop = handler.load(bais, ContextHandler.Type.YAML);
+        Properties prop = YamlLoader.load(new StringReader(conf), new PropertiesSupport.Monitor());
+        prop.list(System.out);
+        assertEquals(3, prop.size());
         assertEquals("${${paas.vcap.alias}.admin.api.server.auth.enable}", prop.getProperty("admin.auth.api.enable"));
         assertEquals("true", prop.getProperty("vcap.services.ups-admin.credentials.admin.api.server.auth.enable"));
 
-        bais = new ByteArrayInputStream(conf.getBytes());
-        handler = new ConfigurationHandler();
+        ByteArrayInputStream bais = new ByteArrayInputStream(conf.getBytes());
+        ConfigurationHandler handler = new ConfigurationHandler();
         handler.parse(bais, ContextHandler.Type.YAML);
         Configuration config = handler.getConfiguration();
         assertNotNull(config);
@@ -239,7 +157,7 @@ public class ConfigurationHandlerTest {
         handler.parse();
         Configuration config = handler.getConfiguration();
         assertNotNull(config);
-        System.out.println(config.toString());
+        //System.out.println(config.toString());
         assertEquals("value1", config.getString("foo.bar.baz"));
         Configuration messages = config.getConfiguration("foo.ui.messages");
         assertEquals("payment", messages.getString("pay"));
