@@ -6,9 +6,10 @@
  - 以运行库方式提供，编译不需要依存此Java包。
  - 不依存任何第三方Java包。
 
-##Usage
+## Usage
 
-###1. Simple Use
+### 1. Simple Use
+
 ```java
 java net.tiny.boot.Main --help
       -p --profile The profile name.
@@ -19,8 +20,8 @@ java net.tiny.boot.Main --help
       -h --help    This help message
 ```
 
+### 2. Application configuration file with profile
 
-###2. Application configuration file with profile
 ```properties
 Configuration file : application-{profile}.[yml, json, conf, properties]
 
@@ -38,7 +39,8 @@ consumer.class = x.y.Callable
 ```
 
 
-###3. Configuration java
+### 3. Configuration java
+
 ```java
 @Config("app.sample")
 public class SampleConfig {
@@ -50,14 +52,15 @@ public class SampleConfig {
 }
 ```
 
-###4. Configuration file
+### 4. Configuration file
+
 ```properties
 app.sample.date = 2016/09/16
 app.sample.day = ${app.sample.date}
 app.sample.array = [${${a.b}.c}, ${x.y.z}]
 ```
 
-##More Detail, See The Samples
+## More Detail, See The Samples
 
 ---
 
