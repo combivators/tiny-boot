@@ -81,11 +81,12 @@ public class RecordFormatter extends Formatter {
     }
 
     private String level(Level level) {
-        String mark;
-        switch(level.toString()) {
+        String mark = level.toString();
+        switch(mark) {
         case "FINEST":
         case "FINER":
         case "FINE":
+        case "TRACE":
             mark = "DEBUG";
             break;
         case "CONFIG":
@@ -101,8 +102,12 @@ public class RecordFormatter extends Formatter {
             mark = "ERROR";
             break;
         case "OFF":
-        default:
             mark = "----";
+            break;
+        case "ALL":
+            mark = "****";
+            break;
+        default:
             break;
         }
         return mark;
